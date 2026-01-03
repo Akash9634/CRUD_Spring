@@ -3,7 +3,9 @@ package com.restApi.services.webServices.User;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,13 +22,25 @@ public class UserResource {
 
     @GetMapping("/user/{id}")
     public User getUser(@PathVariable  int id){
-        return userDaoService.findOne(id);
+
+        User user = userDaoService.findOne(id);
+        if(user==null){
+            throw new UserNotFoundException("user not found id:" + id);
+        }
+        return user;
     }
 
     @PostMapping("/user")
     public ResponseEntity<User> saveUser(@RequestBody User user){
-        userDaoService.save(user);
-        return ResponseEntity.created(null).build();
+        User savedUser = userDaoService.save(user);
+        //buiding the URI of the resource to send along with the request
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedUser.getId())
+                .toUri();
+        //sending body and URI as header named location
+        //http://localhost:8080/user/4
+        return ResponseEntity.created(location).body(savedUser);
     }
 
 }
