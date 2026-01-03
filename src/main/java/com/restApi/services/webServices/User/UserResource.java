@@ -1,11 +1,13 @@
 package com.restApi.services.webServices.User;
 
 
+import com.restApi.services.webServices.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -28,6 +30,17 @@ public class UserResource {
             throw new UserNotFoundException("user not found id:" + id);
         }
         return user;
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<ApiResponse> removeUserById(@PathVariable  int id){
+        userDaoService.deleteById(id);
+
+        ApiResponse response = new ApiResponse(
+                LocalDate.now(),
+                "user deleted successfully"
+        );
+         return  ResponseEntity.ok(response);
     }
 
     @PostMapping("/user")
