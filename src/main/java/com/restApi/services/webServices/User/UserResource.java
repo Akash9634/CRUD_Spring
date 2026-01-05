@@ -18,7 +18,7 @@ public class UserResource {
         this.userDaoService=userDaoService;
     }
 
-    @GetMapping(value = "/users", produces = { "application/json", "application/xml" })
+    @GetMapping("/users")
     public List<User> getAllUsers(){
         return userDaoService.findAll();
     }
