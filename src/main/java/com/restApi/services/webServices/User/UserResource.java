@@ -2,6 +2,7 @@ package com.restApi.services.webServices.User;
 
 
 import com.restApi.services.webServices.response.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -17,7 +18,7 @@ public class UserResource {
         this.userDaoService=userDaoService;
     }
 
-    @GetMapping("/users")
+    @GetMapping(value = "/users", produces = { "application/json", "application/xml" })
     public List<User> getAllUsers(){
         return userDaoService.findAll();
     }
@@ -44,7 +45,7 @@ public class UserResource {
     }
 
     @PostMapping("/user")
-    public ResponseEntity<User> saveUser(@RequestBody User user){
+    public ResponseEntity<User> createUser(@Valid  @RequestBody User user){
         User savedUser = userDaoService.save(user);
         //buiding the URI of the resource to send along with the request
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
