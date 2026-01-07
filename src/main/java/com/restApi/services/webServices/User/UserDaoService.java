@@ -1,40 +1,38 @@
 package com.restApi.services.webServices.User;
 
+import com.restApi.services.webServices.repository.UserJpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 @Component
 public class UserDaoService {
 
-    private static List<User> users = new ArrayList<>();
-    private static int userCount=0;
-    static{
-        users.add(new User(++userCount,"Adam", LocalDate.now().minusYears(30)));
-        users.add(new User(++userCount,"Akash", LocalDate.now().minusYears(25)));
-        users.add(new User(++userCount,"Aman", LocalDate.now().minusYears(20)));
+    private final UserJpaRepository repository;
+    public UserDaoService(UserJpaRepository repository){
+        this.repository = repository;
     }
 
-    public List<User> findAll(){
-        return users;
+    public List<User> getAll(){
+        return repository.findAll();
     }
 
     public User save(User user){
-        user.setId(++userCount);
-        users.add(user);
+        repository.save(user);
         return user;
     }
 
-    public User findOne(int id) {
-        Predicate<? super User> predicate = user -> user.getId().equals(id);
-        return users.stream().filter(predicate).findFirst().orElse(null);
+    public User getById(int id) {
+        Optional<User> user = repository.findById(id);
+        return user.orElse(null);
     }
 
-    public void deleteById(int id){
-        Predicate<? super User> predicate = user -> user.getId().equals(id);
-        users.removeIf(predicate);
+    public void removeById(int id){
+        repository.deleteById(id);
     }
+
 }

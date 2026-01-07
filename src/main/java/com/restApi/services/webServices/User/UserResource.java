@@ -1,32 +1,40 @@
 package com.restApi.services.webServices.User;
 
 
+import com.restApi.services.webServices.repository.PostRepository;
+import com.restApi.services.webServices.repository.UserJpaRepository;
 import com.restApi.services.webServices.response.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UserResource {
     private final UserDaoService userDaoService;
-    UserResource(UserDaoService userDaoService){
+    private final UserJpaRepository repository;
+    private final PostRepository postRepository;
+    UserResource(UserDaoService userDaoService, UserJpaRepository repository, PostRepository postRepository){
+        this.repository=repository;
         this.userDaoService=userDaoService;
+        this.postRepository=postRepository;
     }
 
     @GetMapping("/users")
     public List<User> getAllUsers(){
-        return userDaoService.findAll();
+        return userDaoService.getAll();
     }
 
     @GetMapping("/user/{id}")
     public User getUser(@PathVariable  int id){
 
-        User user = userDaoService.findOne(id);
+        User user = userDaoService.getById(id);
         if(user==null){
             throw new UserNotFoundException("user not found id:" + id);
         }
@@ -35,7 +43,7 @@ public class UserResource {
 
     @DeleteMapping("/user/{id}")
     public ResponseEntity<ApiResponse> removeUserById(@PathVariable  int id){
-        userDaoService.deleteById(id);
+        userDaoService.removeById(id);
 
         ApiResponse response = new ApiResponse(
                 LocalDate.now(),
@@ -55,6 +63,29 @@ public class UserResource {
         //sending body and URI as header named location
         //http://localhost:8080/user/4
         return ResponseEntity.created(location).body(savedUser);
+    }
+
+    @GetMapping("/user/{id}/posts")
+    public List<Post> retrievePostForUser(@PathVariable  int id){
+
+        Optional<User> user = repository.findById(id);
+        if(user.isEmpty()){
+            throw new UserNotFoundException("id: "+id);
+        }
+        return user.get().getPosts();
+    }
+
+    @Transactional
+    @PostMapping("/user/{id}/posts")
+    public List<Post> createPostForUser(@PathVariable int id, @Valid @RequestBody Post post){
+
+        Optional<User> user = repository.findById(id);
+        if(user.isEmpty()){
+            throw new UserNotFoundException("id: "+id);
+        }
+        post.setUser(user.get());
+        postRepository.save(post);
+        return user.get().getPosts();
     }
 
 }
